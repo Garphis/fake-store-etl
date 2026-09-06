@@ -1,84 +1,85 @@
-Markdown
-
 # 🛒 FakeStore E-Commerce ETL Pipeline
 
-A modular ETL (Extract, Transform, Load) pipeline built with Python, pandas, and PostgreSQL.
+A modular **ETL (Extract, Transform, Load)** pipeline built with **Python, pandas, and PostgreSQL**.
 
-The project extracts product and user data from the FakeStore API, transforms and validates the data, and loads the cleaned datasets into PostgreSQL.
+This project extracts product and user data from the **FakeStore API**, transforms and validates the data, and loads the cleaned datasets into PostgreSQL.
 
 ---
 
 ## 🏗️ Architecture
 
 ```text
-┌────────────────────┐
-│   FakeStore API    │
-│   REST Endpoints   │
-└─────────┬──────────┘
-          │
-          │ HTTP GET
-          ▼
-┌────────────────────┐
-│    extract.py      │
-│                    │
-│  API requests      │
-│  HTTP validation   │
-│  Timeout handling  │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│   transform.py     │
-│                    │
-│  Data cleaning     │
-│  JSON flattening   │
-│  Type conversion   │
-│  Data validation   │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│      load.py       │
-│                    │
-│  SQLAlchemy        │
-│  PostgreSQL        │
-│  Data loading      │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│    PostgreSQL      │
-│                    │
-│  products          │
-│  users             │
-└────────────────────┘
+                    ┌─────────────────────┐
+                    │    FakeStore API    │
+                    │    REST Endpoints   │
+                    └──────────┬──────────┘
+                               │
+                            HTTP GET
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │     extract.py      │
+                    │                     │
+                    │ • API requests      │
+                    │ • HTTP validation   │
+                    │ • Timeout handling  │
+                    │ • Error handling    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │    transform.py     │
+                    │                     │
+                    │ • Data cleaning     │
+                    │ • JSON flattening   │
+                    │ • Type conversion  │
+                    │ • Data validation   │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │       load.py       │
+                    │                     │
+                    │ • SQLAlchemy        │
+                    │ • PostgreSQL        │
+                    │ • Data loading      │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │     PostgreSQL      │
+                    │                     │
+                    │ • products          │
+                    │ • users             │
+                    └─────────────────────┘
 
-       logger.py
-          │
-          ├──► Terminal
-          └──► etl.log
+                         logger.py
+                            │
+                    ┌───────┴────────┐
+                    ▼                ▼
+                 Terminal         etl.log
+```
 
-🛠️ Tech Stack
+---
 
-    Python 3.10+
+## 🛠️ Tech Stack
 
-    pandas — data transformation and manipulation
+| Technology | Purpose |
+|------------|---------|
+| **Python 3.10+** | ETL pipeline development |
+| **pandas** | Data transformation and manipulation |
+| **requests** | REST API requests |
+| **PostgreSQL** | Relational database storage |
+| **SQLAlchemy** | Database connection and data loading |
+| **psycopg2** | PostgreSQL database driver |
+| **python-dotenv** | Environment variable management |
+| **logging** | Application logging |
 
-    requests — API requests
+---
 
-    PostgreSQL — relational database storage
+## 📁 Project Structure
 
-    SQLAlchemy — database connection and loading
-
-    psycopg2 — PostgreSQL driver
-
-    python-dotenv — environment variable management
-
-    logging — application logging
-
-📁 Project Structure
-Plaintext
-
+```text
 fake-store-etl/
 │
 ├── etl/
@@ -93,197 +94,270 @@ fake-store-etl/
 ├── .gitignore            # Git ignore rules
 ├── etl.log               # Pipeline logs
 └── README.md             # Project documentation
+```
 
-🔄 ETL Process
-1. Extract
+> **Note:** `.env` contains database credentials and should never be committed to GitHub.
 
-extract.py retrieves product and user data from the FakeStore API.
+---
 
-The extraction process includes:
+## 🔄 ETL Process
 
-    HTTP status validation
+### 1. Extract
 
-    Connection timeout
+The `extract.py` module retrieves product and user data from the FakeStore API.
 
-    Read timeout
+The extraction layer provides:
 
-    Error logging
+- HTTP status validation
+- Connection timeout handling
+- Read timeout handling
+- Error logging
+- Graceful failure handling
 
-    Graceful failure handling
+Requests use:
 
-Requests use a timeout of:
-Python
-
+```python
 timeout=(2, 5)
+```
 
-If an API request fails, the pipeline stops rather than processing incomplete data.
-2. Transform & Validate
+If an API request fails, the pipeline stops instead of processing incomplete data.
 
-transform.py converts the raw API responses into clean pandas DataFrames.
+---
+
+### 2. Transform & Validate
+
+The `transform.py` module converts raw API responses into clean pandas DataFrames.
 
 The transformation process includes:
 
-    Flattening nested JSON objects
+- Flattening nested JSON objects
+- Renaming columns
+- Converting data types
+- Removing invalid records
+- Validating required fields
 
-    Renaming columns
+### Data Quality Rules
 
-    Converting data types
+| Rule | Action |
+|------|--------|
+| Product price must be greater than `0` | Invalid records are dropped |
+| Product ID cannot be null | Invalid records are removed |
+| Product title cannot be null | Invalid records are removed |
+| User ID cannot be null | Invalid records are removed |
+| Malformed email address | Warning is logged |
 
-    Removing invalid records
+Non-critical data-quality issues do not interrupt the entire pipeline.
 
-    Validating required fields
+---
 
-Data quality rules include:
+### 3. Load
 
-    Product price must be greater than 0 (invalid prices dropped)
+The `load.py` module loads the transformed DataFrames into PostgreSQL using SQLAlchemy.
 
-    Product ID cannot be null
+The pipeline currently loads two tables:
 
-    Product title cannot be null
+- `products`
+- `users`
 
-    User ID cannot be null
+The current loading strategy uses:
 
-    Malformed email addresses generate warnings without interrupting pipeline flow
+```python
+if_exists="replace"
+```
 
-3. Load
+This means the existing tables are replaced with the latest successfully transformed dataset on each run.
 
-load.py loads the transformed DataFrames into PostgreSQL using SQLAlchemy.
+---
 
-The pipeline currently loads two datasets:
+## 🗄️ Database Tables
 
-    products
+### Products
 
-    users
+The `products` table contains:
 
-The current loading strategy replaces the existing tables during each successful run (if_exists='replace').
-🗄️ Database Tables
-Products
+| Column | Description |
+|--------|-------------|
+| `product_id` | Unique product identifier |
+| `product_name` | Product name |
+| `product_price` | Product price |
+| `product_category` | Product category |
+| `description` | Product description |
 
-The products table contains:
+### Users
 
-    product_id
+The `users` table contains:
 
-    product_name
+| Column | Description |
+|--------|-------------|
+| `user_id` | Unique user identifier |
+| `user_email` | User email address |
+| `first_name` | User first name |
+| `last_name` | User last name |
+| `street` | Street address |
+| `city` | City |
+| `zipcode` | Postal code |
 
-    product_price
+Nested fields from the API are flattened into relational database columns during transformation.
 
-    product_category
+---
 
-    description
+## ⚙️ Configuration
 
-Users
+Create a `.env` file in the project root:
 
-The users table contains:
-
-    user_id
-
-    user_email
-
-    first_name
-
-    last_name
-
-    street
-
-    city
-
-    zipcode
-
-Nested fields from the API are flattened into relational columns.
-⚙️ Configuration
-
-Create a .env file in the project root:
-Kod snippet'i
-
+```env
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=fakestore
 DB_USER=postgres
 DB_PASSWORD=your_password
+```
 
-    Important: Never commit .env to GitHub. Database credentials should remain private.
+> ⚠️ **Important:** Never commit `.env` to GitHub. Database credentials should remain private.
 
-🚀 Installation
-1. Clone the repository
-Bash
+---
 
-git clone [https://github.com/Garphis/fake-store-etl.git](https://github.com/Garphis/fake-store-etl.git)
+## 🚀 Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Garphis/fake-store-etl.git
 cd fake-store-etl
+```
 
-2. Create a virtual environment
+### 2. Create a virtual environment
 
-Linux/macOS:
-Bash
+**Linux / macOS**
 
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
 
-Windows:
-DOS
+**Windows**
 
+```powershell
 python -m venv venv
 venv\Scripts\activate
+```
 
-3. Install dependencies
-Bash
+### 3. Install dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-4. Configure PostgreSQL
+### 4. Configure PostgreSQL
 
-Create a PostgreSQL database:
-SQL
+Create the database:
 
+```sql
 CREATE DATABASE fakestore;
+```
 
-Then update your .env file with your database credentials.
-5. Run the pipeline
-Bash
+Then update your `.env` file with your PostgreSQL credentials.
 
+### 5. Run the pipeline
+
+```bash
 python main.py
+```
 
-📋 Logging
+---
 
-The pipeline uses Python's built-in logging module. Logs are displayed in the terminal and saved to etl.log:
-Plaintext
+## 📋 Logging
 
-[2026-09-06 16:19:38] [INFO]: === ETL PIPELINE STARTED ===
-[2026-09-06 16:19:39] [INFO]: Products extracted successfully. Total records: 20
-[2026-09-06 16:19:40] [INFO]: Users extracted successfully. Total records: 10
-[2026-09-06 16:19:40] [INFO]: === TRANSFORM STARTED ===
-[2026-09-06 16:19:40] [INFO]: Products prepared: 20 rows, 5 columns.
-[2026-09-06 16:19:40] [INFO]: Users prepared: 10 rows, 7 columns.
-[2026-09-06 16:19:40] [INFO]: === LOADİNG STARTED ===
-[2026-09-06 16:19:40] [INFO]: Loading 20 rows into 'products' table...
-[2026-09-06 16:19:40] [INFO]: Loading 10 rows into 'users' table...
-[2026-09-06 16:19:40] [INFO]: === ETL PIPELINE OVER ===
+The pipeline uses Python's built-in `logging` module.
 
-🛡️ Error Handling
+Logs are written to:
 
-The pipeline is designed to handle failures gracefully:
-Plaintext
+```text
+etl.log
+```
 
+and displayed in the terminal.
+
+### Example Output
+
+```text
+[2026-09-06 16:19:38] [INFO] === ETL PIPELINE STARTED ===
+[2026-09-06 16:19:39] [INFO] Products extracted successfully. Total records: 20
+[2026-09-06 16:19:40] [INFO] Users extracted successfully. Total records: 10
+[2026-09-06 16:19:40] [INFO] === TRANSFORM STARTED ===
+[2026-09-06 16:19:40] [INFO] Products prepared: 20 rows, 5 columns.
+[2026-09-06 16:19:40] [INFO] Users prepared: 10 rows, 7 columns.
+[2026-09-06 16:19:40] [INFO] === LOADING STARTED ===
+[2026-09-06 16:19:40] [INFO] Loading 20 rows into 'products' table...
+[2026-09-06 16:19:40] [INFO] Loading 10 rows into 'users' table...
+[2026-09-06 16:19:40] [INFO] === ETL PIPELINE COMPLETED ===
+```
+
+---
+
+## 🛡️ Error Handling
+
+The pipeline is designed to fail safely when critical errors occur.
+
+### API Failure
+
+```text
 API request fails
-       ↓
+       │
+       ▼
 Error is logged
-       ↓
+       │
+       ▼
 Pipeline stops
-       ↓
+       │
+       ▼
 No incomplete data is loaded
+```
 
-For non-critical data-quality issues:
-Plaintext
+### Data Quality Issue
 
+```text
 Invalid record detected
-       ↓
+       │
+       ▼
 Warning is logged
-       ↓
-Record filtered or flagged
-       ↓
+       │
+       ▼
+Record is filtered
+       │
+       ▼
 Pipeline continues
+```
 
-👨‍💻 Author
+---
 
-Garphis
+## 🔮 Future Improvements
 
-Built as a practical ETL project demonstrating API ingestion, data transformation, validation, logging, and PostgreSQL integration.
+Possible future improvements include:
+
+- [ ] Add automated tests with `pytest`
+- [ ] Add API retry logic with exponential backoff
+- [ ] Implement database upserts
+- [ ] Add incremental ETL processing
+- [ ] Add Docker support
+- [ ] Add CI/CD with GitHub Actions
+- [ ] Add data-quality reporting
+- [ ] Add database migrations
+- [ ] Add ETL orchestration
+
+---
+
+## 👨‍💻 Author
+
+**Garphis**
+
+Built as a practical ETL project demonstrating:
+
+- REST API ingestion
+- Data transformation
+- Data validation
+- PostgreSQL integration
+- Error handling
+- Structured logging
+- Modular Python development
+
