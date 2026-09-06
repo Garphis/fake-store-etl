@@ -1,24 +1,39 @@
 import pandas as pd
 import requests
+from etl.logger import logger
 
 BASE_URL = 'https://fakestoreapi.com'
 
 def extract_product():
     url = f'{BASE_URL}/products'
-    response = requests.get(url)
-    response.raise_for_status()
 
-    data = response.json()
-    product_df = pd.DataFrame(data)
+    try: 
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
 
-    return product_df
+        data = response.json()
+        product_df = pd.DataFrame(data)
+
+        logger.info(f"Products extracted successfully. Total records: {len(data)}")
+        return product_df
+
+    except Exception as e:
+        logger.error(f"Failed to extract products: {e}")
+        return None
 
 def extract_users():
     url = f'{BASE_URL}/users'
-    response = requests.get(url)
-    response.raise_for_status()
 
-    data = response.json()
-    users_df = pd.DataFrame(data)
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
 
-    return users_df
+        data = response.json()
+        users_df = pd.DataFrame(data)
+
+        logger.info(f"Users extracted successfully. Total records: {len(data)}")
+        return users_df
+
+    except Exception as e:
+        logger.error(f"Failed to extract users: {e}")
+        return None

@@ -15,7 +15,7 @@ engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}'
 
 def load_to_postgres(df, table_name):
 
-    logger.info(f"PostgreSQL '{table_name}' tablosuna {len(df)} satır veri yükleniyor...")
+    logger.info(f"Loading {len(df)} rows into '{table_name}' table...")
 
     with engine.connect() as conn:
         df.to_sql(
