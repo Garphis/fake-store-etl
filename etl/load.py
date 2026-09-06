@@ -24,4 +24,3 @@ def load_to_postgres(df, table_name):
             if_exists='replace',
             index=False
         )
-    print(f"Data loaded to {table_name} table successfully.")
