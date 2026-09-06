@@ -1,4 +1,5 @@
 import pandas as pd
+from etl.logger import logger
 
 def transform_product(product_df):
     df = product_df.copy()
@@ -17,6 +18,7 @@ def transform_product(product_df):
 
     df['product_price'] = df['product_price'].astype(float)
 
+    logger.info(f"Ürünler hazırlandı: {df.shape[0]} satır, {df.shape[1]} sütun.")
     return df
 
 def transform_users(users_df):
@@ -38,4 +40,5 @@ def transform_users(users_df):
         'user_id', 'user_email', 'first_name', 'last_name', 'street', 'city', 'zipcode'
     ]]
 
+    logger.info(f"Kullanıcılar hazırlandı: {df.shape[0]} satır, {df.shape[1]} sütun.")
     return df

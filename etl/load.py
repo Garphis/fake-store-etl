@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from etl.logger import logger
 
 load_dotenv()
 
@@ -13,11 +14,14 @@ db_name = os.getenv('DB_NAME')
 engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
 
 def load_to_postgres(df, table_name):
+
+    logger.info(f"PostgreSQL '{table_name}' tablosuna {len(df)} satır veri yükleniyor...")
+
     with engine.connect() as conn:
         df.to_sql(
             table_name,
             conn,
-            if_exists='append',
+            if_exists='replace',
             index=False
         )
     print(f"Data loaded to {table_name} table successfully.")
