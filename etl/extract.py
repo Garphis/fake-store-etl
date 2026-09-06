@@ -8,7 +8,7 @@ def extract_product():
     url = f'{BASE_URL}/products'
 
     try: 
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=(1, 1))
         response.raise_for_status()
 
         data = response.json()
@@ -25,7 +25,7 @@ def extract_users():
     url = f'{BASE_URL}/users'
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=(1, 1))
         response.raise_for_status()
 
         data = response.json()
