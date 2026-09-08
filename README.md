@@ -74,6 +74,8 @@ This project extracts product and user data from the **FakeStore API**, transfor
 | **psycopg2** | PostgreSQL database driver |
 | **python-dotenv** | Environment variable management |
 | **logging** | Application logging |
+| **Docker** | Application containerization |
+| **Docker Compose** | Multi-container orchestration |
 
 ---
 
@@ -208,7 +210,7 @@ Create a `.env` file in the project root:
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=fakestore
+DB_NAME=fake_store_db
 DB_USER=postgres
 DB_PASSWORD=your_password
 ```
@@ -218,6 +220,20 @@ DB_PASSWORD=your_password
 ---
 
 ## 🚀 Installation
+
+### 🐳 Running with Docker (Recommended)
+
+```bash
+docker compose up --build
+```
+*Docker Compose builds the application image, runs the PostgreSQL database, and executes the ETL pipeline automatically.*
+
+To stop the containers:
+```bash
+docker compose down
+```
+
+---
 
 ### 1. Clone the repository
 
@@ -253,7 +269,7 @@ pip install -r requirements.txt
 Create the database:
 
 ```sql
-CREATE DATABASE fakestore;
+CREATE DATABASE fake_store_db;
 ```
 
 Then update your `.env` file with your PostgreSQL credentials.
@@ -339,7 +355,7 @@ Possible future improvements include:
 - [ ] Add API retry logic with exponential backoff
 - [ ] Implement database upserts
 - [ ] Add incremental ETL processing
-- [ ] Add Docker support
+- [x] Add Docker and Docker Compose containerization
 - [ ] Add CI/CD with GitHub Actions
 - [ ] Add data-quality reporting
 - [ ] Add database migrations
